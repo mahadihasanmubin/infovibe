@@ -12,11 +12,20 @@ interface NewsCardProps {
 const NewsCard: React.FC<NewsCardProps> = ({ news, onSave, isSaved }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isFullView, setIsFullView] = useState(false);
+  // Fix: added isMobile state to handle responsive icon sizes as used in lines 94, 123, and 144
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [comments, setComments] = useState<Comment[]>(() => {
     const saved = localStorage.getItem(`comments_${news.id}`);
     return saved ? JSON.parse(saved) : [];
   });
   const [newComment, setNewComment] = useState('');
+
+  // Fix: added useEffect to update isMobile state on window resize
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem(`comments_${news.id}`, JSON.stringify(comments));
@@ -52,113 +61,113 @@ const NewsCard: React.FC<NewsCardProps> = ({ news, onSave, isSaved }) => {
     <>
       <div 
         onClick={() => setIsFullView(true)}
-        className="glass rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:scale-[1.03] gold-border group flex flex-col h-full cursor-pointer relative shadow-2xl"
+        className="glass rounded-[2rem] md:rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:scale-[1.03] gold-border group flex flex-col h-full cursor-pointer relative shadow-2xl"
       >
-        <div className="relative h-64 overflow-hidden">
+        <div className="relative h-48 md:h-64 overflow-hidden">
           <img src={news.imageUrl} alt={news.title} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent" />
-          <div className="absolute top-4 left-4 z-10">
-            <span className="px-4 py-1.5 text-[11px] font-black rounded-full gold-btn uppercase tracking-widest shadow-lg border border-white/20">{news.source}</span>
+          <div className="absolute top-3 left-3 md:top-4 md:left-4 z-10">
+            <span className="px-3 py-1 md:px-4 md:py-1.5 text-[9px] md:text-[11px] font-black rounded-full gold-btn uppercase tracking-widest shadow-lg border border-white/20">{news.source}</span>
           </div>
         </div>
 
-        <div className="p-7 space-y-4 flex-1 flex flex-col">
-          <h3 className="text-xl font-bold text-white leading-tight luxury-text line-clamp-2">{news.title}</h3>
-          <p className="text-slate-400 text-sm leading-relaxed line-clamp-3 font-medium">{news.summary}</p>
+        <div className="p-5 md:p-7 space-y-3 md:space-y-4 flex-1 flex flex-col">
+          <h3 className="text-lg md:text-xl font-bold text-white leading-tight luxury-text line-clamp-2">{news.title}</h3>
+          <p className="text-slate-400 text-[13px] md:text-sm leading-relaxed line-clamp-3 font-medium">{news.summary}</p>
           
-          <div className="flex items-center justify-between pt-5 mt-auto border-t border-white/5">
-            <div className="flex gap-4">
-              <button onClick={toggleSpeech} className="p-3 rounded-2xl bg-white/5 hover:bg-gold-primary/20 text-gold-primary transition-all gold-border">
-                {isPlaying ? <Pause size={18} /> : <Play size={18} />}
+          <div className="flex items-center justify-between pt-4 md:pt-5 mt-auto border-t border-white/5">
+            <div className="flex gap-2 md:gap-4">
+              <button onClick={toggleSpeech} className="p-2 md:p-3 rounded-xl bg-white/5 hover:bg-gold-primary/20 text-gold-primary transition-all gold-border">
+                {isPlaying ? <Pause size={16} /> : <Play size={16} />}
               </button>
               <button 
                 onClick={(e) => { e.stopPropagation(); onSave(news.id); }} 
-                className={`p-3 rounded-2xl bg-white/5 transition-all gold-border ${isSaved ? 'text-gold-primary bg-gold-primary/10' : 'text-slate-500 hover:text-white'}`}
+                className={`p-2 md:p-3 rounded-xl bg-white/5 transition-all gold-border ${isSaved ? 'text-gold-primary bg-gold-primary/10' : 'text-slate-500 hover:text-white'}`}
               >
-                {isSaved ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
+                {isSaved ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
               </button>
             </div>
-            <div className="flex items-center gap-1.5 text-slate-500 text-[10px] font-black uppercase tracking-widest">
-              <MessageCircle size={16} className="text-gold-primary" /> {comments.length} মতামত
+            <div className="flex items-center gap-1 text-slate-500 text-[9px] md:text-[10px] font-black uppercase tracking-widest">
+              <MessageCircle size={14} className="text-gold-primary" /> {comments.length} মতামত
             </div>
           </div>
         </div>
       </div>
 
-      {/* Full Modal View - No Redirect Needed */}
+      {/* Full Modal View - Responsive adjustments */}
       {isFullView && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-10 animate-in fade-in duration-300">
-          <div className="absolute inset-0 bg-slate-950/98 backdrop-blur-3xl" onClick={() => setIsFullView(false)} />
-          <div className="relative w-full max-w-5xl h-full max-h-[95vh] glass rounded-[3rem] flex flex-col overflow-hidden gold-border shadow-[0_0_100px_rgba(212,175,55,0.1)]">
-            <button onClick={() => setIsFullView(false)} className="absolute top-8 right-8 p-4 bg-white/10 hover:bg-rose-500/20 text-white rounded-full z-10 transition-all border border-white/10">
-              <X size={28} />
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-0 md:p-10 animate-in fade-in duration-300">
+          <div className="absolute inset-0 bg-slate-950 md:bg-slate-950/98 md:backdrop-blur-3xl" onClick={() => setIsFullView(false)} />
+          <div className="relative w-full max-w-5xl h-full md:h-auto md:max-h-[95vh] glass rounded-none md:rounded-[3rem] flex flex-col overflow-hidden gold-border shadow-[0_0_100px_rgba(212,175,55,0.1)]">
+            <button onClick={() => setIsFullView(false)} className="absolute top-4 right-4 md:top-8 md:right-8 p-3 md:p-4 bg-white/10 hover:bg-rose-500/20 text-white rounded-full z-10 transition-all border border-white/10">
+              <X size={isMobile ? 22 : 28} />
             </button>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-16">
-              <div className="max-w-3xl mx-auto space-y-12">
-                <div className="relative rounded-[3rem] overflow-hidden shadow-2xl gold-border h-80 md:h-[450px]">
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-5 md:p-16">
+              <div className="max-w-3xl mx-auto space-y-8 md:space-y-12">
+                <div className="relative rounded-2xl md:rounded-[3rem] overflow-hidden shadow-2xl gold-border h-60 md:h-[450px]">
                   <img src={news.imageUrl} className="w-full h-full object-cover" alt="" />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />
                 </div>
                 
-                <div className="space-y-6">
-                  <div className="flex items-center gap-5">
-                    <span className="px-6 py-2 rounded-full gold-btn text-[10px] tracking-[0.2em] font-black uppercase">{news.source}</span>
-                    <span className="text-slate-500 text-[10px] font-black flex items-center gap-2 uppercase tracking-[0.1em]"><Clock size={16} className="text-gold-primary"/> {new Date(news.pubDate).toLocaleString('bn-BD')}</span>
+                <div className="space-y-4 md:space-y-6">
+                  <div className="flex flex-wrap items-center gap-3 md:gap-5">
+                    <span className="px-4 py-1.5 md:px-6 md:py-2 rounded-full gold-btn text-[9px] md:text-[10px] tracking-[0.2em] font-black uppercase">{news.source}</span>
+                    <span className="text-slate-500 text-[9px] md:text-[10px] font-black flex items-center gap-2 uppercase tracking-[0.1em]"><Clock size={14} className="text-gold-primary"/> {new Date(news.pubDate).toLocaleString('bn-BD')}</span>
                   </div>
-                  <h1 className="text-4xl md:text-6xl font-black text-white luxury-text leading-[1.15]">{news.title}</h1>
+                  <h1 className="text-2xl md:text-6xl font-black text-white luxury-text leading-tight">{news.title}</h1>
                 </div>
 
                 <div className="prose prose-invert max-w-none">
-                  <div className="text-xl md:text-2xl text-gold-primary/90 font-bold leading-relaxed mb-10 italic border-l-4 border-gold-primary pl-8 bg-gold-primary/5 py-6 rounded-r-3xl">
+                  <div className="text-lg md:text-2xl text-gold-primary/90 font-bold leading-relaxed mb-6 md:mb-10 italic border-l-4 border-gold-primary pl-4 md:pl-8 bg-gold-primary/5 py-4 md:py-6 rounded-r-2xl md:rounded-r-3xl">
                     সারসংক্ষেপ: {news.summary}
                   </div>
-                  <div className="text-slate-300 text-lg md:text-xl leading-[2.2] space-y-10 font-medium tracking-wide">
-                    {news.content.split('\n').map((para, i) => para && <p key={i} className="mb-6">{para}</p>)}
+                  <div className="text-slate-300 text-base md:text-xl leading-relaxed md:leading-[2.2] space-y-6 md:space-y-10 font-medium tracking-wide">
+                    {news.content.split('\n').map((para, i) => para && <p key={i} className="mb-4 md:mb-6">{para}</p>)}
                   </div>
                 </div>
 
-                <div className="pt-10 flex flex-wrap gap-5">
-                   <a href={news.link} target="_blank" rel="noopener noreferrer" className="gold-btn px-10 py-5 rounded-[2rem] flex items-center gap-3 text-sm font-black uppercase tracking-widest shadow-2xl">
-                     সংবাদ পোর্টালে ভিজিট করুন <ExternalLink size={20} />
+                <div className="pt-6 md:pt-10 flex flex-wrap gap-4 md:gap-5">
+                   <a href={news.link} target="_blank" rel="noopener noreferrer" className="flex-1 md:flex-none gold-btn px-6 py-4 md:px-10 md:py-5 rounded-xl md:rounded-[2rem] flex items-center justify-center gap-3 text-xs md:text-sm font-black uppercase tracking-widest shadow-2xl">
+                     ভিজিট পোর্টাল <ExternalLink size={isMobile ? 16 : 20} />
                    </a>
                 </div>
 
-                <hr className="border-white/5 my-20" />
+                <hr className="border-white/5 my-10 md:my-20" />
 
                 {/* Comment Section Hub */}
-                <div className="space-y-12 pb-20">
-                  <h3 className="text-3xl font-black text-white flex items-center gap-5 uppercase tracking-widest">
-                    <div className="p-4 bg-gold-primary/10 rounded-2xl text-gold-primary"><MessageCircle size={32} /></div>
-                    পাঠকদের মন্তব্য ({comments.length})
+                <div className="space-y-8 md:space-y-12 pb-10 md:pb-20">
+                  <h3 className="text-xl md:text-3xl font-black text-white flex items-center gap-3 md:gap-5 uppercase tracking-widest">
+                    <div className="p-2.5 md:p-4 bg-gold-primary/10 rounded-xl md:rounded-2xl text-gold-primary"><MessageCircle size={24} className="md:w-8 md:h-8" /></div>
+                    মন্তব্য ({comments.length})
                   </h3>
                   
-                  <div className="flex gap-4">
+                  <div className="flex gap-2 md:gap-4">
                     <input 
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
-                      placeholder="আপনার চিন্তাভাবনা শেয়ার করুন..."
-                      className="flex-1 bg-white/5 border border-white/10 rounded-[1.5rem] px-8 py-6 text-white focus:outline-none focus:ring-2 focus:ring-gold-primary transition-all gold-border text-lg"
+                      placeholder="শেয়ার করুন..."
+                      className="flex-1 bg-white/5 border border-white/10 rounded-xl md:rounded-[1.5rem] px-5 md:px-8 py-3.5 md:py-6 text-white focus:outline-none focus:ring-2 focus:ring-gold-primary transition-all gold-border text-sm md:text-lg"
                     />
-                    <button onClick={handleAddComment} className="px-10 gold-btn rounded-[1.5rem] shadow-2xl hover:scale-105 active:scale-95 transition-all">
-                      <Send size={28} />
+                    <button onClick={handleAddComment} className="px-5 md:px-10 gold-btn rounded-xl md:rounded-[1.5rem] shadow-2xl hover:scale-105 active:scale-95 transition-all">
+                      <Send size={isMobile ? 18 : 28} />
                     </button>
                   </div>
 
-                  <div className="space-y-8">
+                  <div className="space-y-6 md:space-y-8">
                     {comments.length > 0 ? comments.map(c => (
-                      <div key={c.id} className="p-8 bg-white/5 rounded-[2.5rem] border border-white/5 flex gap-6 animate-in slide-in-from-bottom-4">
-                        <div className="w-14 h-14 rounded-full bg-gold-primary/10 border border-gold-primary/20 flex items-center justify-center text-gold-primary shadow-inner">
-                          <User size={30} />
+                      <div key={c.id} className="p-5 md:p-8 bg-white/5 rounded-2xl md:rounded-[2.5rem] border border-white/5 flex gap-4 md:gap-6 animate-in slide-in-from-bottom-4">
+                        <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-gold-primary/10 border border-gold-primary/20 flex items-center justify-center text-gold-primary shadow-inner flex-shrink-0">
+                          <User size={20} className="md:w-7 md:h-7" />
                         </div>
-                        <div className="space-y-2">
-                          <p className="text-gold-primary text-xs font-black uppercase tracking-[0.2em]">{c.userName} • {c.date}</p>
-                          <p className="text-slate-200 text-lg font-medium leading-relaxed">{c.text}</p>
+                        <div className="space-y-1 md:space-y-2">
+                          <p className="text-gold-primary text-[8px] md:text-xs font-black uppercase tracking-[0.2em]">{c.userName} • {c.date}</p>
+                          <p className="text-slate-200 text-sm md:text-lg font-medium leading-relaxed">{c.text}</p>
                         </div>
                       </div>
                     )) : (
-                      <div className="py-20 text-center glass rounded-[3rem] border-dashed border-white/10">
-                         <p className="text-slate-600 font-bold uppercase tracking-widest text-sm">এখনো কেউ মন্তব্য করেনি। প্রথম মন্তব্যটি আপনার হোক!</p>
+                      <div className="py-12 md:py-20 text-center glass rounded-2xl md:rounded-[3rem] border-dashed border-white/10">
+                         <p className="text-slate-600 font-bold uppercase tracking-widest text-[10px] md:text-sm px-4">এখনো কেউ মন্তব্য করেনি। প্রথম মন্তব্যটি আপনার হোক!</p>
                       </div>
                     )}
                   </div>

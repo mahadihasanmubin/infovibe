@@ -1,5 +1,5 @@
 
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 
 // এপিআই কি সরাসরি প্রসেস এনভায়রনমেন্ট থেকে নেওয়া হচ্ছে
 const getAIClient = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -7,9 +7,9 @@ const getAIClient = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
 export const summarizeNews = async (title: string, content: string): Promise<string> => {
   try {
     const ai = getAIClient();
-    // 'gemini-2.5-flash-lite-latest' নিউজ সামারির জন্য বেশি স্ট্যাবল
+    // Use gemini-3-flash-preview for basic text tasks like summarization as per guidelines
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-lite-latest",
+      model: "gemini-3-flash-preview",
       contents: `You are a professional news editor. Summarize the following news into exactly 3 clear, punchy lines in Bengali. 
       Use simple language. Do not include any technical jargon or symbols. 
       
@@ -18,7 +18,6 @@ export const summarizeNews = async (title: string, content: string): Promise<str
       config: { 
         maxOutputTokens: 300, 
         temperature: 0.5,
-        // সেফটি সেটিংস শিথিল করা হয়েছে যাতে সাধারণ নিউজ ব্লক না হয়
       },
     });
 
@@ -34,18 +33,61 @@ export const summarizeNews = async (title: string, content: string): Promise<str
   }
 };
 
-export const validateAndProcessUserPost = async (title: string, content: string, source: string) => {
+export const translateTitle = async (title: string): Promise<string> => {
+  // যদি টাইটেলে বাংলা অক্ষর থাকে, তবে অনুবাদের প্রয়োজন নেই
+  if (/[\u0980-\u09FF]/.test(title)) return title;
+
   try {
     const ai = getAIClient();
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-lite-latest",
-      contents: `Act as a news validator. Check if this is a real news piece. Return JSON: 
-      { "isValid": boolean, "summary": "3 lines in Bengali", "category": "Politics/Tech/Sports/Entertainment/General", "country": "string" }
+      model: "gemini-3-flash-preview",
+      contents: `Translate this news headline into a single short line of natural sounding Bengali. 
+      Headline: "${title}"`,
+      config: { maxOutputTokens: 100, temperature: 0.3 },
+    });
+    return response.text?.trim() || title;
+  } catch (error) {
+    return title;
+  }
+};
+
+export const validateAndProcessUserPost = async (title: string, content: string, source: string) => {
+  try {
+    const ai = getAIClient();
+    // Updated to gemini-3-flash-preview and implemented responseSchema for robust JSON output
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `Act as a news validator. Check if this is a real news piece. 
       Title: ${title}, Content: ${content}`,
-      config: { responseMimeType: "application/json" }
+      config: { 
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            isValid: {
+              type: Type.BOOLEAN,
+              description: "Whether the news content is valid and not fake."
+            },
+            summary: {
+              type: Type.STRING,
+              description: "A 3-line summary of the news in Bengali."
+            },
+            category: {
+              type: Type.STRING,
+              description: "The news category: Politics, Tech, Sports, Entertainment, or General."
+            },
+            country: {
+              type: Type.STRING,
+              description: "The country the news is related to."
+            }
+          },
+          required: ["isValid", "summary", "category", "country"]
+        }
+      }
     });
     return JSON.parse(response.text);
   } catch (error) {
+    console.error("Gemini Validation Error:", error);
     return { isValid: true, summary: content.substring(0, 120) + "...", category: 'General', country: 'Global' };
   }
 };
@@ -54,13 +96,14 @@ export const categorizeNews = async (title: string): Promise<string> => {
   try {
     const ai = getAIClient();
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-lite-latest",
+      model: "gemini-3-flash-preview",
       contents: `Return ONLY the category name for this title: "${title}". Options: Politics, Tech, Sports, Entertainment, General.`,
       config: { maxOutputTokens: 20 },
     });
     const category = response.text?.trim() || "General";
     return category;
   } catch (error) {
+    console.error("Gemini Categorization Error:", error);
     return "General";
   }
 };

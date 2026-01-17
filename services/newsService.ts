@@ -1,6 +1,6 @@
 
 import { NewsItem, NewsSource } from '../types';
-import { summarizeNews, categorizeNews } from './geminiService';
+import { summarizeNews, categorizeNews, translateTitle } from './geminiService';
 
 const PROXY_URLS = [
   'https://api.allorigins.win/raw?url=',
@@ -35,7 +35,7 @@ export const fetchNewsFromSource = async (source: NewsSource): Promise<NewsItem[
       const items = Array.from(xmlDoc.querySelectorAll('item, entry')).slice(0, 8);
       
       const newsItems = await Promise.all(items.map(async (item) => {
-        const title = item.querySelector('title')?.textContent || 'No Title';
+        const rawTitle = item.querySelector('title')?.textContent || 'No Title';
         const link = item.querySelector('link')?.textContent || 
                      item.querySelector('link')?.getAttribute('href') || '#';
         const pubDate = item.querySelector('pubDate')?.textContent || 
@@ -66,20 +66,21 @@ export const fetchNewsFromSource = async (source: NewsSource): Promise<NewsItem[
         
         // Final fallback to high quality placeholders if still empty
         if (!imageUrl || imageUrl.startsWith('/')) {
-          imageUrl = `https://images.unsplash.com/photo-1585829365234-781fcd0d3065?auto=format&fit=crop&q=80&w=800&seed=${generateStableId(title)}`;
+          imageUrl = `https://images.unsplash.com/photo-1585829365234-781fcd0d3065?auto=format&fit=crop&q=80&w=800&seed=${generateStableId(rawTitle)}`;
         }
 
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = descriptionRaw;
-        const cleanContent = tempDiv.textContent || tempDiv.innerText || title;
+        const cleanContent = tempDiv.textContent || tempDiv.innerText || rawTitle;
 
         // Fetch AI processing
-        const category = await categorizeNews(title);
-        const summary = await summarizeNews(title, cleanContent.slice(0, 1000));
+        const category = await categorizeNews(rawTitle);
+        const summary = await summarizeNews(rawTitle, cleanContent.slice(0, 1000));
+        const translatedTitle = await translateTitle(rawTitle);
 
         return {
           id: generateStableId(link), 
-          title,
+          title: translatedTitle,
           link,
           pubDate,
           content: cleanContent,

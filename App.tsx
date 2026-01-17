@@ -10,6 +10,7 @@ import { AppView, User, NewsItem } from './types';
 const App: React.FC = () => {
   const [activeView, setActiveView] = useState<AppView>('USER');
   const [searchQuery, setSearchQuery] = useState('');
+  const [tickerHeadlines, setTickerHeadlines] = useState<string[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     const savedUser = localStorage.getItem('infovibe_user');
     return savedUser ? JSON.parse(savedUser) : null;
@@ -41,9 +42,10 @@ const App: React.FC = () => {
       onSearch={setSearchQuery}
       currentUser={currentUser}
       onLogout={handleLogout}
+      tickerItems={tickerHeadlines}
     >
-      {activeView === 'USER' && <UserFeed searchQuery={searchQuery} userPosts={userPosts} />}
-      {activeView === 'TRENDING' && <UserFeed searchQuery={searchQuery} userPosts={userPosts} viewMode="TRENDING" />}
+      {activeView === 'USER' && <UserFeed searchQuery={searchQuery} userPosts={userPosts} onNewsLoaded={setTickerHeadlines} />}
+      {activeView === 'TRENDING' && <UserFeed searchQuery={searchQuery} userPosts={userPosts} viewMode="TRENDING" onNewsLoaded={setTickerHeadlines} />}
       {activeView === 'SAVED' && <UserFeed searchQuery={searchQuery} userPosts={userPosts} viewMode="SAVED" />}
       {activeView === 'ADMIN' && currentUser?.role === 'admin' && <AdminDashboard />}
       {activeView === 'POST_NEWS' && currentUser && <PostNews onPostAdded={handlePostAdded} currentUser={currentUser} />}

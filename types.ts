@@ -23,6 +23,23 @@ export interface NewsItem {
   comments?: Comment[];
 }
 
+export interface SocialUpdate {
+  id: string;
+  platform: 'facebook' | 'twitter';
+  source: string;
+  content: string;
+  time: string;
+  tags?: string[];
+}
+
+export interface Notification {
+  id: string;
+  title: string;
+  time: string;
+  isRead: boolean;
+  type: 'breaking' | 'social' | 'system';
+}
+
 export interface User {
   id: string;
   name: string;
@@ -38,10 +55,3 @@ export interface NewsSource {
 }
 
 export type AppView = 'USER' | 'ADMIN' | 'LOGIN' | 'POST_NEWS' | 'TRENDING' | 'SAVED';
-
-export interface YoutubeVideo {
-  id: string;
-  title: string;
-  channel: string;
-  thumbnail: string;
-}
