@@ -1,4 +1,11 @@
 
+export interface Comment {
+  id: string;
+  userName: string;
+  text: string;
+  date: string;
+}
+
 export interface NewsItem {
   id: string;
   title: string;
@@ -13,6 +20,7 @@ export interface NewsItem {
   isTrending?: boolean;
   country: string;
   postedBy?: string;
+  comments?: Comment[];
 }
 
 export interface User {
@@ -29,4 +37,11 @@ export interface NewsSource {
   active: boolean;
 }
 
-export type AppView = 'USER' | 'ADMIN' | 'LOGIN' | 'POST_NEWS' | 'TRENDING';
+export type AppView = 'USER' | 'ADMIN' | 'LOGIN' | 'POST_NEWS' | 'TRENDING' | 'SAVED';
+
+export interface YoutubeVideo {
+  id: string;
+  title: string;
+  channel: string;
+  thumbnail: string;
+}

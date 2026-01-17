@@ -44,6 +44,7 @@ const App: React.FC = () => {
     >
       {activeView === 'USER' && <UserFeed searchQuery={searchQuery} userPosts={userPosts} />}
       {activeView === 'TRENDING' && <UserFeed searchQuery={searchQuery} userPosts={userPosts} viewMode="TRENDING" />}
+      {activeView === 'SAVED' && <UserFeed searchQuery={searchQuery} userPosts={userPosts} viewMode="SAVED" />}
       {activeView === 'ADMIN' && currentUser?.role === 'admin' && <AdminDashboard />}
       {activeView === 'POST_NEWS' && currentUser && <PostNews onPostAdded={handlePostAdded} currentUser={currentUser} />}
       {activeView === 'LOGIN' && <Login onLogin={setCurrentUser} onBack={() => setActiveView('USER')} />}

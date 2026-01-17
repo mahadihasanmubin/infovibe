@@ -21,28 +21,32 @@ const Login: React.FC<LoginProps> = ({ onLogin, onBack }) => {
     e.preventDefault();
     setError('');
 
-    if (!name || !email || !password) {
-      setError('দয়া করে সবগুলো ঘর পূরণ করুন।');
+    if (!email || !password) {
+      setError('দয়া করে ইমেইল এবং পাসওয়ার্ড ঘর পূরণ করুন।');
       return;
     }
 
     let role: 'user' | 'admin' = 'user';
+    let finalName = name.trim();
     
     // Exact Admin Match Logic
     if (email.trim().toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
       if (password === ADMIN_PASS) {
         role = 'admin';
         // Admin default name if not provided
-        if (!name) setName('Super Admin');
+        if (!finalName) finalName = 'Super Admin';
       } else {
         setError('ভুল পাসওয়ার্ড! আপনি কি অ্যাডমিন হিসেবে প্রবেশের চেষ্টা করছেন?');
         return;
       }
     }
 
+    // Default user name if not provided
+    if (!finalName) finalName = 'Guest User';
+
     onLogin({
       id: Math.random().toString(36).substr(2, 9),
-      name: name,
+      name: finalName,
       email: email.trim().toLowerCase(),
       status: 'active',
       role: role
@@ -60,16 +64,15 @@ const Login: React.FC<LoginProps> = ({ onLogin, onBack }) => {
             <ShieldCheck className="text-white" size={40} />
           </div>
 
-          <h2 className="text-4xl font-black text-white mb-3 tracking-tight">অ্যাকাউন্ট</h2>
-          <p className="text-slate-500 text-sm mb-10 font-medium">আপনার ডিজিটাল নিউজ জার্নি শুরু করুন</p>
+          <h2 className="text-4xl font-black text-white mb-3 tracking-tight">প্রবেশ করুন</h2>
+          <p className="text-slate-500 text-sm mb-10 font-medium">আপনার প্রোফাইল সেটআপ করুন</p>
           
           <form onSubmit={handleSubmit} className="space-y-6 text-left">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">আপনার নাম</label>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">আপনার নাম (ঐচ্ছিক)</label>
               <div className="relative group">
                  <UserIcon className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-indigo-500 transition-colors" size={18} />
                  <input 
-                  required 
                   type="text" 
                   value={name} 
                   onChange={e => setName(e.target.value)} 
@@ -117,7 +120,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onBack }) => {
             )}
 
             <button type="submit" className="w-full py-5 bg-indigo-600 hover:bg-indigo-500 text-white font-black rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-3 uppercase tracking-widest text-sm">
-              প্রবেশ করুন <ArrowRight size={20} />
+              চালিয়ে যান <ArrowRight size={20} />
             </button>
             
             <button type="button" onClick={onBack} className="w-full py-2 text-slate-600 text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors">
